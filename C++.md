@@ -94,6 +94,7 @@
   - [13.1. Typedefs](#131-typedefs)
   - [预处理](#预处理)
   - [有用的资源](#有用的资源)
+- [参考](#参考)
 
 # 1. 预备知识
 ## 1.1. 历史
@@ -1549,3 +1550,7 @@ C++ 还支持很多预处理指令，比如 #include、#define、#if、#else、#
 ```c++
 
 ```
+
+# 参考
+1. [菜鸟教程：C++ 教程](https://www.runoob.com/cplusplus/cpp-tutorial.html)
+2. 
