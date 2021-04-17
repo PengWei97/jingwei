@@ -1,0 +1,11 @@
+{
+  "files.associations": {
+    "*.i": "shellscript",
+    "ComputeElasticityTensorBase.C": "cpp",
+    "ComputeRotatedElasticityTensorBase.C": "cpp",
+    "ComputeElasticityTensor.C": "cpp",
+    "ComputeElasticityTensorCP.C": "cpp",
+    "ComputePolycrystalElasticityTensor.C": "cpp",
+    "RotationTensor.C": "cpp"
+  }
+}
