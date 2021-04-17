@@ -9,3 +9,5 @@
  2. C++
  3. FEM
  4. Linux
+
+![jingwei](./jingwei.png)
