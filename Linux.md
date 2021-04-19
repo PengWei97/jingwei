@@ -134,4 +134,15 @@ sudo ./vmware-install.pl
 ## Linux 软件安装
 
 1. paraview安装 `sudo apt install paraview`
-2. 
+
+
+
+adduser
+
+## 用户管理
+
+### 添加用户
+
+```powershell
+adduser # 比较好，具有交互的界面
+```

@@ -39,9 +39,9 @@ Markdown支持有序列表和无序列表
   - 第二项嵌套的第一个元素
 3. 第三项
 
-### 1.3.1. 1.4 链接
+## 1.3.1. 链接
 
-#### 1.3.1.1. 1.4.1 文字链接
+### 1.3.1.1. 文字链接
 在日常生活中我们使用的网址有[google], [github], [overflow]
 
 [google]:https://www.google.com/webhp?hl=zh-CN&sa=X&ved=0ahUKEwjM3f3Pr_3vAhXyJKYKHT3wDT4QPAgL
@@ -52,6 +52,10 @@ Markdown支持有序列表和无序列表
 
 ### 1.3.3. 网址链接
 <https://www.youtube.com/>
+
+### 文内跳转
+
+[跳转到1.1字体](#11-字体)
 
 ## 1.4. 代码
 
@@ -75,7 +79,7 @@ int main() {
 }
 ```
 
-```shell
+```powershell
 htop
 sar -r 2 300 > memory_3txt
 ```
@@ -171,7 +175,8 @@ http://www.baidu.com
 ```shell
 pipenv shell
 ```
-
+##　希腊字母
+[速查](https://my.oschina.net/KujieDuyuren/blog/4256002)
 
 # 2. markdown - vs code
 

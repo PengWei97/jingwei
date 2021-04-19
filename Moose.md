@@ -20,17 +20,27 @@
     - [3.2.3. ComputeRotatedElasticityTensorBase](#323-computerotatedelasticitytensorbase)
     - [3.2.4. ComputeElasticityTensorBase](#324-computeelasticitytensorbase)
 - [4. phase field](#4-phase-field)
-  - [materals/ComputePolycrystalElasticityTensor](#materalscomputepolycrystalelasticitytensor)
-    - [ComputePolycrystalElasticityTensor](#computepolycrystalelasticitytensor)
-    - [ComputeElasticityTensorBase](#computeelasticitytensorbase)
-- [5. Materials](#5-materials)
-  - [5.1. MaterialProperty](#51-materialproperty)
-- [c++](#c)
-- [耦合](#耦合)
-  - [基于ComputeElasticityTensorCP来耦合.](#基于computeelasticitytensorcp来耦合)
-  - [多晶建模中欧拉角文件生成](#多晶建模中欧拉角文件生成)
-    - [matlab-人工欧拉角赋予](#matlab-人工欧拉角赋予)
-    - [matlab-随机赋予欧拉角](#matlab-随机赋予欧拉角)
+  - [4.1. materals/ComputePolycrystalElasticityTensor](#41-materalscomputepolycrystalelasticitytensor)
+    - [4.1.1. ComputePolycrystalElasticityTensor](#411-computepolycrystalelasticitytensor)
+    - [4.1.2. ComputeElasticityTensorBase](#412-computeelasticitytensorbase)
+- [5. Tensor_mechanics](#5-tensor_mechanics)
+  - [5.1. Introduction](#51-introduction)
+  - [5.2. 探索功能并开始建模](#52-探索功能并开始建模)
+    - [5.2.1. 即插即用模块概述-张量模块](#521-即插即用模块概述-张量模块)
+    - [5.2.2. 应变材料](#522-应变材料)
+  - [5.3. 材料模块--张量力学](#53-材料模块--张量力学)
+    - [5.3.1. 应变](#531-应变)
+    - [5.3.2. 应力](#532-应力)
+    - [5.3.3. 弹性模量](#533-弹性模量)
+- [6. Materials](#6-materials)
+  - [6.1. MaterialProperty](#61-materialproperty)
+- [7. c++](#7-c)
+- [8. 耦合](#8-耦合)
+  - [8.1. 基于ComputeElasticityTensorCP来耦合.](#81-基于computeelasticitytensorcp来耦合)
+- [9. 建模](#9-建模)
+  - [9.1. 多晶建模中欧拉角文件生成](#91-多晶建模中欧拉角文件生成)
+    - [9.1.1. matlab-人工欧拉角赋予](#911-matlab-人工欧拉角赋予)
+    - [9.1.2. matlab-随机赋予欧拉角](#912-matlab-随机赋予欧拉角)
 
 # 1. Moose begin
 
@@ -362,9 +372,9 @@ class ComputeElasticityTensorBaseTempl : public DerivativeMaterialInterface<Mate
 # 4. phase field
 
 
-## materals/ComputePolycrystalElasticityTensor
+## 4.1. materals/ComputePolycrystalElasticityTensor
 
-### ComputePolycrystalElasticityTensor
+### 4.1.1. ComputePolycrystalElasticityTensor
 
 `ComputeRotatedElasticityTensorBase` 和 `ComputePolycrystalElasticityTensor` 都继承自  `ComputeElasticityTensorBase` 不过前者是类模板继承，后者不是
 
@@ -385,12 +395,55 @@ class ComputeElasticityTensorBaseTempl : public DerivativeMaterialInterface<Mate
 
 ```
 
-### ComputeElasticityTensorBase
+### 4.1.2. ComputeElasticityTensorBase
+
+# 5. Tensor_mechanics
+
+## 5.1. Introduction
+
+张量力学模块是是一个用于求解连续介质力学问题的工具库。它提供了一个简单方法来实现先进的力学模型。
+  - 即插即用的设计使得用户可以将相关的物理原理结合起来，以进行特定的模拟
+  - 张量的实现与数学理想想匹配
+  - 添加新物理对象的简单程序
+张量力学模块可以被用于模拟线形和有限应变力学，包括弹性和Cosserat弹性，塑性和微观塑性，蠕变，以及开裂和性能退化照成的损伤。
+
+## 5.2. 探索功能并开始建模
+张量力学模块用与各种纯力学模拟和与其他物理模块相互耦合的模拟，包括：热传递，相场，接触，多孔流和XFEM模型；使用MOOSE组合模拟对多个物理模块进行仿真。
+
+### 5.2.1. 即插即用模块概述-张量模块
+
+张量力学模块使用即插即用系统，其中残差方程使用的主要张量在moose单个材料类中被定义。在张量力学中使用插拔式方法要求至少需要三个独立的材料类来完全描述材料模型。
+三个张量必须被定义对于任何力学问题：
+ 1. 应变 $\epsilon$ 或者 应变增量 $\delta\epsilon$
+ 2. 弹性模量 $C$ 
+ 3. 应力 $\sigma$ 
+ 4. 可选择的张量包括：stress-free stain((eigenstrain, 本征应变) $\epsilon_0$ 和 additional stress $\sigma_0$
+  
+有时，用户可以在单个块（block）中定义多个力学性质。因此，所有材料特性都可以输入参数base_name定义的名称为前缀。
+
+### 5.2.2. 应变材料
+
+去创建应变（$\epsilon$）或者应变增量的材料基类是 `ComputeStrainBase`; 这个类是纯虚类，要求所有的派生类去覆盖（override）成员函数 `computeQpProperties()`.对于所有的应变，这个基类定义塑性 `total_strain`.对于增量应变，无论是有限应变还是小应变，计算应变基类定义属性 `strian_rate,strain_increment, rotation_increment, and deformation_gradient`. 在应变网页中提供了不同应变范式的讨论。
+
+对于小应变，使用 [ComputeSmallStrain](#531-应变)，其中 $\epsilon = (\nabla u+\nabla u^T)/2$.
+
+对于有限应变问题，使用 [ComputeFiniteStrain](#531-应变)
 
 
-# 5. Materials
 
-## 5.1. MaterialProperty
+## 5.3. 材料模块--张量力学
+
+### 5.3.1. 应变
+
+### 5.3.2. 应力
+
+### 5.3.3. 弹性模量
+
+
+
+# 6. Materials
+
+## 6.1. MaterialProperty
 
 ```c++
 struct GenericMaterialPropertyStruct< T, is_ad >
@@ -400,12 +453,12 @@ GenericMaterialProperty = typename GenericMaterialPropertyStruct< T, is_ad >::ty
  
 ```
 
-# c++
+# 7. c++
 
 
-# 耦合
+# 8. 耦合
 
-## 基于ComputeElasticityTensorCP来耦合.
+## 8.1. 基于ComputeElasticityTensorCP来耦合.
 
 关键在于ComputeElasticityTensorCP中输入欧拉角计算所得旋转矩阵
 
@@ -420,11 +473,11 @@ _elasticity_tensor[_qp] += _grain_tracker.getData(grain_id) * h;
 
 能不能将本应该在GrainTrackerElasticity赋予欧拉角的旋转矩阵,在材料的弹性模块中被赋予.
 
-#　建模
+# 9. 建模
 
-## 多晶建模中欧拉角文件生成
+## 9.1. 多晶建模中欧拉角文件生成
 
-### matlab-人工欧拉角赋予
+### 9.1.1. matlab-人工欧拉角赋予
 
 > 基底为44 45 46°欧拉角，人工赋予14个欧拉角为90°
 
@@ -443,7 +496,7 @@ ps:赋予的时候，挑选的序号需要+1
 [grn_6400_rand_2D.tex](./Matlab/Output/grn_6400_rand_2D.tex)
  
 
-### matlab-随机赋予欧拉角
+### 9.1.2. matlab-随机赋予欧拉角
 
 > 使用rand随机赋予欧拉角，对1600个晶粒
 

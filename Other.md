@@ -1,4 +1,27 @@
-# 基本概念
+# Github
+
+1. [GitHub Docs](https://docs.github.com/cn/github/getting-started-with-github)
+
+## 概念
+
+## 使用git
+
+### ubuntu中git环境配置
+
+### 推送提交的远程仓库
+
+```powershell
+git add . # 添加所有修改文件到
+git commit -u 'update'
+git push -u origin main
+```
+
+### 从远程仓库获取更改
+
+```shell
+git pull
+```
+# Notion
 
 ## 目的
 
