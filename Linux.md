@@ -6,7 +6,7 @@
 
 ### 1.1.1. 实施检测
 
-```shell
+```powershell
 htop # 界面比top更加好
 sar -r 2 300 > memory_3txt 
 # 间隔两秒之后输出内存使用情况，记录300次
@@ -16,12 +16,12 @@ sar -r 2 300 > memory_3txt
 
 ### 1.2.1. 更新
 
-```shell
+```powershell
 sudo apt-get update # 更新源
 sudo apt-get upgrade # 更新已安装的包
 ```
 
-```shell
+```powershell
 ```
 
 ### 1.2.2. Linux终端设置
@@ -30,7 +30,7 @@ sudo apt-get upgrade # 更新已安装的包
 
 [Linux命令提示符太长](https://blog.csdn.net/Bloddy/article/details/81638953)
 
-```shell
+```powershell
 (moose) xia@xia-virtual-machine:
 ~/projects/luwu/src
 $
@@ -38,7 +38,7 @@ $
 
 需要修改 `~/.bashrc`
 
-```shell
+```powershell
 if [ "$color_prompt" = yes ]; then
     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\n\w\[\033[00m\]\n\$ '
     # \[\033[01;32m\]\u：当前用户账号名称，
@@ -62,12 +62,12 @@ fi
 \W ：利用basename取得工作目录名称，所以只会列出最后一个目录
 $ ：提示字符，如果是root时，提示符为：# ，普通用户则为：$
 
-### Linux终端显示git当前所在分支
+#### Linux终端显示git当前所在分支
 
 修改 `.bashrc`
 
 添加代码
-```shell
+```powershell
 function git_branch {
    branch="`git branch 2>/dev/null | grep "^\*" | sed -e "s/^\*\ //"`"
    if [ "${branch}" != "" ];then
@@ -83,17 +83,35 @@ function git_branch {
 
 [Ubuntu Linux终端颜色个性化设置](https://os.51cto.com/art/202008/625040.htm)
 
-```shell
+```powershell
 if [ "$color_prompt" = yes ]; then
-        PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]$(git_branch)\n\[\033[01;36m\]\w\[\033[01;31m\]\n\$ '
+        PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]$(git_branch)\n\[\033[01;31m\]\w\[\033[01;36m\]\n\$ '
 else
         PS1='${debian_chroot:+($debian_chroot)}\u@\h:(git_branch)\n\w\n\$ '
 fi
 ```
 
+> 32m 绿色
+> 34m 蓝色
+> 36m 青蓝色
+> 31m 红色
+
 效果展示
 
 ![terminal-show](./Linux/terimain-show_2021-04-17.png)
+
+### 给命令设置别名
+
+```powershell
+vim ~/.bashrc
+
+# 添加代码
+alias mk='make -j6'
+alias cona='conda activate moose'
+# 等号之间不能有空格
+# 修改完成之后，运行下列代买
+source ~/.bashrc
+```
 
 ## 1.3. ubuntu-vm
 
@@ -108,8 +126,12 @@ fi
 将这个文件夹的tar文件复制到Desktop中，解压，之后运行 `vmware-install.pl`
 
 键入如下命名，之后一路默认进行
-```shell
+```powershell
 sudo ./vmware-install.pl
 ```
 
 
+## Linux 软件安装
+
+1. paraview安装 `sudo apt install paraview`
+2. 

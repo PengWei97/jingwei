@@ -6,6 +6,7 @@
     "ComputeElasticityTensor.C": "cpp",
     "ComputeElasticityTensorCP.C": "cpp",
     "ComputePolycrystalElasticityTensor.C": "cpp",
-    "RotationTensor.C": "cpp"
+    "RotationTensor.C": "cpp",
+    "GrainTrackerElasticity.C": "cpp"
   }
 }

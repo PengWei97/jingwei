@@ -28,6 +28,8 @@
 - [c++](#c)
 - [耦合](#耦合)
   - [基于ComputeElasticityTensorCP来耦合.](#基于computeelasticitytensorcp来耦合)
+- [建模及后处理](#建模及后处理)
+    - [matlab建立欧拉角输入文件](#matlab建立欧拉角输入文件)
 
 # 1. Moose begin
 
@@ -364,7 +366,6 @@ class ComputeElasticityTensorBaseTempl : public DerivativeMaterialInterface<Mate
 ### ComputePolycrystalElasticityTensor
 
 `ComputeRotatedElasticityTensorBase` 和 `ComputePolycrystalElasticityTensor` 都继承自  `ComputeElasticityTensorBase` 不过前者是类模板继承，后者不是
-
 ```c++
 // ComputePolycrystalElasticityTensor.h
   class ComputePolycrystalElasticityTensor : public ComputeElasticityTensorBase
@@ -416,3 +417,15 @@ _elasticity_tensor[_qp] += _grain_tracker.getData(grain_id) * h;
 ```
 
 能不能将本应该在GrainTrackerElasticity赋予欧拉角的旋转矩阵,在材料的弹性模块中被赋予.
+
+# 建模及后处理
+
+##　线弹性多晶模拟
+
+### matlab建立欧拉角输入文件
+
+grn_6400_rand_2D.tex 输出生成
+
+1. 基底欧拉角44 45 46°，人工赋予14个欧拉角90°
+
+![euler_man](./)
