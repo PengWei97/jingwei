@@ -78,8 +78,14 @@ To store your changes on github:
 
 特别是，如果您看到“ Segfault”或“ Signal 11”，则意味着该抽出调试器了。 一旦达到段错误，任何调试器将自动停止，从而向您确切显示发生无效内存访问的位置。
 
+[Debugging](https://mooseframework.inl.gov/application_development/debugging.html)
+
 ```shell
 METHOD=dbg make -j 8
+
+gdb --args ./yourapp-dbg -i inputfile.i
+
+b MPI_Abort
 ```
 
 ### 1.2.1. Debug Executable
