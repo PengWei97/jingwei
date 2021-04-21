@@ -32,15 +32,26 @@
     - [5.3.1. 应变](#531-应变)
     - [5.3.2. 应力](#532-应力)
     - [5.3.3. 弹性模量](#533-弹性模量)
+  - [张量模块](#张量模块)
+    - [Tensor Operators](#tensor-operators)
+  - [Crystal Plasticity -- Stress](#crystal-plasticity----stress)
+    - [ComputeCrystalPlasticityStress](#computecrystalplasticitystress)
+    - [材料属性](#材料属性)
+    - [晶体塑性中的单位设置](#晶体塑性中的单位设置)
 - [6. Materials](#6-materials)
   - [6.1. MaterialProperty](#61-materialproperty)
 - [7. c++](#7-c)
-- [8. 耦合](#8-耦合)
+- [8. 进一步阅读](#8-进一步阅读)
+  - [flood](#flood)
+- [耦合](#耦合)
   - [8.1. 基于ComputeElasticityTensorCP来耦合.](#81-基于computeelasticitytensorcp来耦合)
 - [9. 建模](#9-建模)
   - [9.1. 多晶建模中欧拉角文件生成](#91-多晶建模中欧拉角文件生成)
     - [9.1.1. matlab-人工欧拉角赋予](#911-matlab-人工欧拉角赋予)
     - [9.1.2. matlab-随机赋予欧拉角](#912-matlab-随机赋予欧拉角)
+  - [尺度建立](#尺度建立)
+    - [相场模拟尺度](#相场模拟尺度)
+    - [晶体塑性尺度](#晶体塑性尺度)
 
 # 1. Moose begin
 
@@ -423,22 +434,96 @@ class ComputeElasticityTensorBaseTempl : public DerivativeMaterialInterface<Mate
 
 ### 5.2.2. 应变材料
 
-去创建应变（$\epsilon$）或者应变增量的材料基类是 `ComputeStrainBase`; 这个类是纯虚类，要求所有的派生类去覆盖（override）成员函数 `computeQpProperties()`.对于所有的应变，这个基类定义塑性 `total_strain`.对于增量应变，无论是有限应变还是小应变，计算应变基类定义属性 `strian_rate,strain_increment, rotation_increment, and deformation_gradient`. 在应变网页中提供了不同应变范式的讨论。
-
-对于小应变，使用 [ComputeSmallStrain](#531-应变)，其中 $\epsilon = (\nabla u+\nabla u^T)/2$.
-
-对于有限应变问题，使用 [ComputeFiniteStrain](#531-应变)
-
-
-
 ## 5.3. 材料模块--张量力学
 
 ### 5.3.1. 应变
 
+去创建应变（$\epsilon$）或者应变增量的材料基类是 `ComputeStrainBase`; 这个类是纯虚类，要求所有的派生类去覆盖（override）成员函数 `computeQpProperties()`.对于所有的应变，这个基类定义塑性 `total_strain`.对于增量应变，无论是有限应变还是小应变，计算应变基类定义属性 `strian_rate,strain_increment, rotation_increment, and deformation_gradient`. 在应变网页中提供了不同应变范式的讨论。
+
+对于小应变，使用 [ComputeSmallStrain](#531-应变)，其中 $\epsilon = (\nabla u+\nabla u^T)/2$.
+
+对于有限应变问题，使用 [ComputeFiniteStrain](#531-应变)，计算应变增量和旋转增量
+
+在 `TensorMechanics master action` 中，应力范式可以通过如下代码设置
+
 ### 5.3.2. 应力
+
+用于计算应力 $\sigma$ 本构方程的基类是 `ComputeStressBase`. 这个基类定义了属性应力和弹性应变。这是一个纯虚类，要求~
+不同的本构方程详见 `stress web`
+
+[Stress Divergence](https://mooseframework.inl.gov/modules/tensor_mechanics/StressDivergence.html)
+
+[Stresses in Tensor Mechanics](https://mooseframework.inl.gov/modules/tensor_mechanics/Stresses.html)
+
+Inelastic Stress Calculations
+ 1. User Objects, which perform the stress calculations in both MOOSE code UserObjects and Materials, and
+ 2. StressUpdate Materials, which calculate the stress within a specific type of MOOSE Materials code.
+
+User Objects Plasticity Models
+
+This approach to modeling plasticity problems uses as stress material to call several UserObjects, where each user object calculates and returns a specific materials property, e.g. a crystal plasticity lip system strength. The stress material then calculates the current stress state based on the returned material properties.
+
+
+张量力学模块包括用于计算弹性应力，塑性应力，蠕变应力和应力计算方法组合的多个类别。
+ 
 
 ### 5.3.3. 弹性模量
 
+创建弹性模量 $C_{ijkl}$ 的主要类是 `ComputeElasticityTensor`. 这个类定义属性 `_elasticity_tensor`.若需要计算旋转之后的弹性模量，欧拉角需要提供。弹性模量还可以作为专用弹性模量的基类，包括：
+  - 用于晶体塑性的弹性模量： `ComputeElasticityTensorCP` 
+  - A Cosserat elasticity tensor
+  - 各向同性弹性模量： `ComputeIsopicElasticityTensor`
+  - 
+
+
+## 张量模块
+
+### Tensor Operators
+https://mooseframework.inl.gov/source/utils/MooseUtils.html
+
+## Crystal Plasticity -- Stress
+
+基于UserObject的晶体可塑性系统旨在以模块化方式促进不同本构定律的实施。 现象学本构模型和基于位错的本构模型都可以通过该系统实现。
+该系统由一个基于FiniteStrainUObased的材料类和四个用户对象类组成：
+  - `CrystalPlasticitySlipRateGSS` 
+  - `CrystalPlasticitySlipResistanceGSS`
+  - `CrystalPlasticityStateVarRateComponentGSS`
+  - `CrystalPlasticityStateVariable`
+
+### ComputeCrystalPlasticityStress
+
+[ComputeCrystalPlasticityStress](https://mooseframework.inl.gov/moose/source/materials/crystal_plasticity/ComputeCrystalPlasticityStress.html)
+
+使用晶体塑性本构关系计算应力
+
+在许多晶体固体力学的领域中，晶体塑性理论已被确立为探索晶体微观结构演变与工程规模相应之间关系的有效关系。在连续力学框架内制定晶体可塑性，相比于能够明确跟踪每个单个的位错和缺陷原子和位错动力学模型，这些模型可用于更长的时间尺度和更大的长度尺度。
+
+`ComputeCrystalPlasticityStress` 类调用指定的晶体可塑性本构模型类，并存储由晶体可塑性模型计算出的柯西应力。`ComputeCrystalPlasticityStress`设计为与晶体可塑性模型结合使用，以计算非弹性应变响应。
+
+`ComputeCrystalPlasticityStress` 计算初始弹性应变 “trial” 值和相应的初始 “trial” 柯西应力值。 这些初始值传递给本构晶体可塑性模型，在该模型中，通过CrystalPlasticityUpdate基类，将演化方程假定为以更新的拉格朗日增量形式实现。 根据本构模型定义，在每个网格正交点上的每次模拟迭代中都会计算局部收敛的应力（请参阅牛顿-拉普森干涉）。
+
+鉴于 `CrystalPlasticityUpdate` 基类在计算应变和柯西应力增量时所起的重要作用，下面概述了用于计算和收敛一般晶体塑性本构模型的应变和应力增量的算法。
+
+### 材料属性
+
+1. a0, $\alpha_0$, 参考剪切速率，$s^{-1}$
+2. xm, $m$ 滑移速率敏感性的材料参数，没有单位
+3. q, $q_{\alpha\beta}$,没有单位
+4. h0, $h_0$, 滑移硬化参数，MPa
+5. tau_init, $\tau_{init}$, 初始滑移阻力,MPa
+6. tau_sat, $\tau_{sat}$, 滑移阻力的饱和值,MPa
+7. a, $a$, 滑移硬化参数, 没有单位
+8. gss $\tau^\alpha_c$, 滑移阻力,MPa
+
+
+### 晶体塑性中的单位设置
+
+mm-MPa-s unit system
+- Mesh dimensions should be constructed in mm
+- Elastic constant values (e.g. Young's modulus and shear modulus) are entered in MPa
+- Initial slip system strength values are entered in MPa
+- Simulation times are given in s
+- Strain rates and displacement loading rates are given in 1/s and mm/s, respectively
 
 
 # 6. Materials
@@ -452,11 +537,23 @@ struct GenericMaterialPropertyStruct< T, is_ad >
 GenericMaterialProperty = typename GenericMaterialPropertyStruct< T, is_ad >::type
  
 ```
-
+$ y_{n+1} = y_n + \dot{y}\cdot dt $
 # 7. c++
 
 
-# 8. 耦合
+# 8. 进一步阅读
+
+##　ComputeMultipleCrystalPlasticityStress 
+
+[Refactor crystal plasticity base class to account for multiple crystal plastic deformation mechanisms #17405](https://github.com/idaholab/moose/pull/17405)
+
+
+
+ 
+## flood 
+
+
+# 耦合
 
 ## 8.1. 基于ComputeElasticityTensorCP来耦合.
 
@@ -499,4 +596,26 @@ ps:赋予的时候，挑选的序号需要+1
 ### 9.1.2. matlab-随机赋予欧拉角
 
 > 使用rand随机赋予欧拉角，对1600个晶粒
+
+
+## 尺度建立
+
+### 相场模拟尺度
+
+1. length_scale = 1e-09 # nm
+2. time_scale = 1e-09 # nm
+
+test：
+```powershell
+length_scale = 1e-03 # mm
+time_scale = 1e-01 # s
+```
+### 晶体塑性尺度
+
+1. $20 \mu m\times 20 \mu m$；15 grains；the average grain diameter: 5.9 $\mu m$
+   1. MPa, mm
+
+###　耦合尺度
+
+要求：
 

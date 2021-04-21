@@ -8,6 +8,12 @@
 
 ### ubuntu中git环境配置
 
+### github clone 远程仓库
+
+```powershell
+git clone git@github.com:PengWei97/c_pfor_am.git
+```
+
 ### 推送提交的远程仓库
 
 ```powershell
@@ -43,3 +49,8 @@ Notion的数据库是一个非常强大的板块，它提供了五种不同的�
 ## 参考资料
 
 1. (Notion，一款强大到改变我人生的软件)[https://zhuanlan.zhihu.com/p/268991624]
+
+# Plan
+
+- [ ] 阅读 `MECHANICAL BEHAVIOR OF MATERIALS`
+- [ ] 
