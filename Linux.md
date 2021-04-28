@@ -2,9 +2,69 @@
 
 主要以ubuntu为主的技能积累
 
+##　安装
+
+本次安装以U盘安装为例，需要工具如下，
+1. Ubuntu安装包镜像：[Ubuntu 20.04.2.0 LTS](https://ubuntu.com/download/desktop)，建议使用迅雷下载。
+2. U盘一个，最好是8G以上
+3. 启动u盘制作工具：[Rufus](http://rufus.ie/zh/)
+
+### 制作U盘启动盘
+
+[Create a bootable USB stick on Windows](https://ubuntu.com/tutorials/create-a-usb-stick-on-windows#1-overview)
+
+###　系统安装
+
+[Install Ubuntu desktop](https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview)
+
+## 常用命令行
+
+```powershell
+tldr
+```
+
 ## 1.1. 系统检测
 
-### 1.1.1. 实施检测
+
+### 查看系统硬件信息
+
+```powershell
+# CPU
+lscpu
+cat /proc/cpuinfo
+
+# memory
+free -m
+cat /proc/meminfo
+dmidecode -t memory
+
+# 磁盘
+lsblk
+fdisk -l
+
+# 网卡
+lspci | grep -i 'eth'
+ifconfig -a
+
+# pci信息-主板上所有硬件槽信息
+lspci
+
+# usb信息
+lsusb
+```
+### 查看进程
+
+`htop`
+
+### 查看磁盘使用率
+
+du
+
+`ncdu` 
+```powershell
+ncdu
+```
+### 1.1.1. 实时检测
 
 ```powershell
 htop # 界面比top更加好
@@ -146,3 +206,16 @@ adduser
 ```powershell
 adduser # 比较好，具有交互的界面
 ```
+
+# 硬件
+
+##　硬盘
+
+- 硬盘转速
+- 硬盘容量
+- 氦气盘
+- 磁盘技术 > 叠瓦盘：不建议
+- Backblaze：年化故障率
+- 国行，高转速，非叠瓦，氦气盘
+###　固态硬盘
+

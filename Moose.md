@@ -7,6 +7,11 @@
     - [1.3.1. Testing Philosophy](#131-testing-philosophy)
     - [1.3.2. TestHarness](#132-testharness)
   - [1.4. update Moose](#14-update-moose)
+  - [Contributing](#contributing)
+    - [TIP:Start a Discussion](#tipstart-a-discussion)
+    - [Code Standards](#code-standards)
+    - [Referencing Issues](#referencing-issues)
+    - [Work In A Fork](#work-in-a-fork)
 - [2. github](#2-github)
   - [2.1. 2.0 ubuntu创建ssh公钥](#21-20-ubuntu创建ssh公钥)
   - [2.2. git查看/修改用户名和邮箱地址](#22-git查看修改用户名和邮箱地址)
@@ -179,11 +184,37 @@ make -j4
 
 
 
+## Contributing
+
+驼鹿是一个合作的努力，我们总是欢迎贡献！在为MOOSE做贡献时，你需要记住，每天都有成百上千的人依靠这个代码来完成他们的工作。因此，我们有特定的策略、过程和自动化流程来保持高代码质量，同时允许每天对代码进行许多更改。
+
+### TIP:Start a Discussion
+
+在投入时间之前，建议你与社区讨论一下你的贡献。这有助于确定最佳的工作方法，甚至可以避免把时间花在已经可能的事情上。驼鹿有着广泛的能力和活跃的社区，参与社区活动肯定是有益的。
 
 
+### Code Standards
 
+当修改或添加到MOOSE时，您需要遵循严格的MOOSE代码标准。这些准则确保了MOOSE中所有代码的通用外观，允许开发人员在代码段之间无缝移动，并为用户提供一致的界面。
 
+### Referencing Issues
 
+[example issues](https://github.com/idaholab/moose/issues/16064)
+[example pull requests](https://github.com/idaholab/moose/pull/17405)
+
+对MOOSE的每一次修改都必须引用一个issue number。这意味着每个流入MOOSE的 Pull Request (PR)必须至少包含一个提交，该提交引用了与您正在处理的问题相关的问题（例如refs#<number>（其中<number>是MOOSE GitHub问题页上的问题号，例如1234）。如果您的PR完全解决了一个问题，您可以通过在问题引用前加上“closes”或“fixes”来自动关闭它（例如，closes#1234）。我们的测试系统会自动检查问题编号。
+
+### Work In A Fork
+
+The first step in modifying MOOSE is to create your own fork where you can commit your set of changes.
+
+1. Fork MOOSE
+
+> git clone git@github.com:username/moose.git
+
+2. Add the upstream Remote:
+
+> 
 # 2. github
 
 [Ubuntu 20安装Qv2ray 教程](https://iguge.app/helper/?p=257)
@@ -574,8 +605,29 @@ Real h = (1.0 + std::sin(libMesh::pi * ((*_vals[op_index])[_qp] - 0.5))) / 2.0;
 _elasticity_tensor[_qp] += _grain_tracker.getData(grain_id) * h;
 ```
 
-能不能将本应该在GrainTrackerElasticity赋予欧拉角的旋转矩阵,在材料的弹性模块中被赋予.
+能不能将本应该在 `GrainTrackerElasticity` 赋予欧拉角的旋转矩阵,在材料的弹性模块中被赋予.
 
+- 2021.04.21 
+  - 感觉耦合有各种各样的bug：
+      1. 新建自定义对象创建一个二阶张量赋予给newgrain，用于输入旋转矩阵给材料模块中的弹性模量，编译没有问题，但是在运行*.i文件的时候不能运行，显示：
+       ```powershell
+       Assertion 'grain_id < _grain_data.size()' failed Requested data for invalid grain index.
+       at/hone/projectsosedules/phase_fieldild /header_synlinks/GrainDataTracker .h，line 46
+       ```
+
+      2. 在 `GrainTrackerElasticity` 的基础上新建一个成员函数，但是出现覆盖四阶张量的情况
+       ```powershell
+       error: 'RankTwoTensor GrainTrackerElasticityPW::newGrain(unsigned int)' cannot be overloaded with 'RankFourTensor GrainTrackerElasticityPW::newGrain(unsigned int)'
+       ```
+  - 计划：
+      1. 补c++的知识，主要是泛式编程部分
+      2. 将现在的工作上传到github上，期望得到专家的指导。
+
+- 2021.04.22
+  - 进度
+    - 你是
+  - 计划
+    - 1. 
 # 9. 建模
 
 ## 9.1. 多晶建模中欧拉角文件生成
@@ -590,11 +642,11 @@ _elasticity_tensor[_qp] += _grain_tracker.getData(grain_id) * h;
 
 ps:赋予的时候，挑选的序号需要+1
 
-1. 使用matlab脚本生成*.tex文件
+2. 使用matlab脚本生成*.tex文件
 
 [euler_45_90.m](./Matlab/script/euler_45_90.m)
 
-1. 之后生成 `grn_6400_rand_2D` 文件
+3. 之后生成 `grn_6400_rand_2D` 文件
 
 [grn_6400_rand_2D.tex](./Matlab/Output/grn_6400_rand_2D.tex)
  
