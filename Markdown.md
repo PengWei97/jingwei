@@ -178,6 +178,11 @@ pipenv shell
 ##　希腊字母
 [速查](https://my.oschina.net/KujieDuyuren/blog/4256002)
 
+
+## 公式
+[用Markdown写公式](https://www.cyprestar.com/2018/02/26/Write-Markdown-with-Formulas/)
+
+
 # 2. markdown - vs code
 
 ## 2.1. Markdown All in One
