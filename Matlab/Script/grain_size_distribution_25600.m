@@ -23,7 +23,7 @@ DATA_CSV0 = table2array(readtable(filename(1).name)); %将poly6400_grtracker45.c
 NUM_INITIAL_GRAIN = DATA_CSV0(1,5); % 初始晶粒数目
 xy = zeros(NUM_INTERVAL,3*(NUM_FILE-1)); % 输出数据-晶粒尺寸分布
 
-idex_data = [5 19 55 104 152 198 234];
+idex_data = [5 19 34 41 198 234];
 
 
 %% 计算
@@ -79,7 +79,7 @@ end
 
 %% 可视化
 type_MarkerFaceColor = ['r';'g';'c';'b';'m'];
-idex_data_output = [21 23 61 89 103 110 105]
+idex_data_output = [21 23 25 89 103 110 105]
 hold on
 box on
 for iFile = 2:NUM_FILE

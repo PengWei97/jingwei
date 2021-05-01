@@ -26,7 +26,7 @@ maker_idx = 1:3:100;
 %     'DisplayName','(a) ');
 
 % num_x = [19 19 20 28 37]; % for 0~40°
-num_x = [22 21 23 20 19 19]; % for 50~90°
+num_x = [22 21 23 26 28 19]; % for 50~90°
 % data_DisplayName = [' 0°';'10°';'20°';'30°';'40°'];
 data_DisplayName = ['1';'2';'3';'4';'5'];
 num_MarkerSize = 5;
@@ -82,37 +82,50 @@ for i = 2:num_x(num)
 end
 num_rate_biGG(num,1) = num_rate_biGG(num,1)/(num_x(num)-1)
 
-% % 4
-% num = 4
-% num_data = 10;
-% plot(a(2:num_x(4),num_data)-a(1,num_data),a(2:num_x(4),num_data+1)-a(1,num_data+1),...
-%     'color','c',...
-%     'Marker','p',...
-%     'MarkerFaceColor','c',...
-%     'MarkerSize',num_MarkerSize,...
-%     'LineWidth',num_LineWidth,...
-%     'DisplayName',data_DisplayName(4,:));
+% 4
+num = 4
+num_data = 10;
+plot(a(2:num_x(4),num_data)-a(1,num_data),a(2:num_x(4),num_data+1)-a(1,num_data+1),...
+    'color','c',...
+    'Marker','p',...
+    'MarkerFaceColor','c',...
+    'MarkerSize',num_MarkerSize,...
+    'LineWidth',num_LineWidth,...
+    'DisplayName',data_DisplayName(4,:));
     
-% for i = 2:num_x(num)
-%     num_rate_biGG(num,1) = num_rate_biGG(num,1) + ((a(i,num_data+1)/3.14)^0.5-(a(1,num_data+1)/3.14)^0.5)/(a(i,num_data)-a(1,num_data));
-% end
-% num_rate_biGG(num,1) = num_rate_biGG(num,1)/(num_x(num)-1)
+for i = 2:num_x(num)
+    num_rate_biGG(num,1) = num_rate_biGG(num,1) + ((a(i,num_data+1)/3.14)^0.5-(a(1,num_data+1)/3.14)^0.5)/(a(i,num_data)-a(1,num_data));
+end
+num_rate_biGG(num,1) = num_rate_biGG(num,1)/(num_x(num)-1)
 
-% % 5
-% num = 5
-% num_data = 13;
-% plot(a(2:num_x(5),num_data)-a(1,num_data),a(2:num_x(5),num_data+1)-a(1,num_data+1),...
-%     'color','m',...
-%     'Marker','d',...
-%     'MarkerFaceColor','m',...
-%     'MarkerSize',num_MarkerSize,...
-%     'LineWidth',num_LineWidth,...
-%     'DisplayName',data_DisplayName(5,:));
+% 5
+num = 5
+num_data = 13;
+plot(a(2:num_x(5),num_data)-a(1,num_data),a(2:num_x(5),num_data+1)-a(1,num_data+1),...
+    'color','m',...
+    'Marker','d',...
+    'MarkerFaceColor','m',...
+    'MarkerSize',num_MarkerSize,...
+    'LineWidth',num_LineWidth,...
+    'DisplayName',data_DisplayName(5,:));
     
-% for i = 2:num_x(num)
-%     num_rate_biGG(num,1) = num_rate_biGG(num,1) + ((a(i,num_data+1)/3.14)^0.5-(a(1,num_data+1)/3.14)^0.5)/(a(i,num_data)-a(1,num_data));
-% end
-% num_rate_biGG(num,1) = num_rate_biGG(num,1)/(num_x(num)-1)
+for i = 2:num_x(num)
+    num_rate_biGG(num,1) = num_rate_biGG(num,1) + ((a(i,num_data+1)/3.14)^0.5-(a(1,num_data+1)/3.14)^0.5)/(a(i,num_data)-a(1,num_data));
+end
+num_rate_biGG(num,1) = num_rate_biGG(num,1)/(num_x(num)-1)
+
+
+% 6 Hillert distribution
+
+xx_Hillert = linspace(0,1.99,100);
+beta_dim = 2
+yy_Hillert = beta_dim.*xx_Hillert./(2-xx_Hillert).^(2+beta_dim).*(2*exp(1)).^beta_dim.*exp(-2*beta_dim./(2-xx_Hillert))
+plot(xx_Hillert,yy_Hillert,...
+    'MarkerFaceColor','b',...
+    'MarkerSize',2,...
+    'LineWidth',1,...
+    'HandleVisibility','off');
+
 
 num_FontSize_label = 8
 num_FontSize_legend = 10
@@ -127,7 +140,7 @@ ylabel('Related Frequency',...
       'Color','k')
 set(gca,'FontSize',num_FontSize_legend,'Fontwei','Bold','Linewidth',1)
 
-% lgd = legend({'(a) 100.0ns','(b) 1000ns','(c) 3000ns','(d) 5000ns'},...
+% lgd = legend({'(a) 100.0ns','(    b) 1000ns','(c) 3000ns','(d) 5000ns'},...
 %             'FontSize',num_FontSize_legend,'TextColor','black','Location','northeast');
 
 lgd = legend('FontSize',num_FontSize_legend,'TextColor','black','Location','northeast');
@@ -137,8 +150,8 @@ ylim([0 1.4])
 xlim([0,2.5])
 
 hfig = figure(1);
-figWidth = 10;
-figHight = 6.5;
+figWidth = 20;
+figHight = 13;
 % 7.3,7 for fcc_word
 
 set(hfig,'PaperUnits','centimeters');
