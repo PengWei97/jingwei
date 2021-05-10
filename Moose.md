@@ -7,6 +7,8 @@
     - [1.3.1. Testing Philosophy](#131-testing-philosophy)
     - [1.3.2. TestHarness](#132-testharness)
   - [1.4. update Moose](#14-update-moose)
+  - [Restart](#restart)
+    - [Grain growth simulation stuck at Nonlinear |R| step #17422](#grain-growth-simulation-stuck-at-nonlinear-r-step-17422)
   - [Contributing](#contributing)
     - [TIP:Start a Discussion](#tipstart-a-discussion)
     - [Code Standards](#code-standards)
@@ -27,6 +29,10 @@
 - [4. phase field](#4-phase-field)
   - [4.1. materals/ComputePolycrystalElasticityTensor](#41-materalscomputepolycrystalelasticitytensor)
     - [4.1.1. ComputePolycrystalElasticityTensor](#411-computepolycrystalelasticitytensor)
+  - [GrainTracker](#graintracker)
+    - [Grain Tracking](#grain-tracking)
+    - [Grain Remapping](#grain-remapping)
+    - [code](#code)
     - [4.1.2. ComputeElasticityTensorBase](#412-computeelasticitytensorbase)
 - [5. Tensor_mechanics](#5-tensor_mechanics)
   - [5.1. Introduction](#51-introduction)
@@ -182,6 +188,51 @@ make -j4
 ```
 
 
+
+## Restart
+
+1. grain_growth_2D_graintracker.i vs grain_growth_2D_voronoi.i
+
+发现前者多了如下代码：
+```bash
+  [./grain_tracker]
+    type = GrainTracker
+    threshold = 0.2
+    connecting_threshold = 0.08
+    compute_halo_maps = true # Only necessary for displaying HALOS
+  [../]
+```
+> 需要尝试去使用restart来看一看是否可以被继续执行-> 尝试了可以进行restart
+
+> E:\MOOSE\moose-next\moose-next\modules\phase_field\examples\grain_growth\
+
+2. grain_growth_2D_graintracker.i vs poly_grain_growth_2D_eldrforce.i
+
+> 相比前者，后者主要修改了grain_tracker文件
+```bash
+  [./grain_tracker]
+    type = GrainTrackerElasticity
+    threshold = 0.2
+    compute_var_to_feature_map = true
+    execute_on = 'initial timestep_begin'
+    flood_entity_type = ELEMENTAL
+
+    C_ijkl = '1.27e5 0.708e5 0.708e5 1.27e5 0.708e5 1.27e5 0.7355e5 0.7355e5 0.7355e5'
+    fill_method = symmetric9
+    euler_angle_provider = euler_angle_file
+  [../]
+```
+
+事实证明，是GrainDataTracker.h是造成不能restart的原因
+
+> E:\MOOSE\moose-next\moose-next\modules\combined\examples\phase_field-mechanics\
+
+
+### Grain growth simulation stuck at Nonlinear |R| step #17422
+
+https://github.com/idaholab/moose/discussions/17422
+
+E:\MOOSE\moose-next\moose-next\modules\phase_field\examples\grain_growth\3D_6000_gr.i
 
 
 ## Contributing
@@ -443,6 +494,128 @@ class ComputeElasticityTensorBaseTempl : public DerivativeMaterialInterface<Mate
 
 ```
 
+
+## GrainTracker
+
+E:\MOOSE\moose-next\moose-next\modules\phase_field\src\postprocessors
+
+**Grain Tracker是一种实用程序，可用于相场仿真中，以减少为大型多晶系统建模所需的序参数。  GrainTracker利用FeatureFloodCount对象从求解域中识别和提取单个晶粒。 一旦FeatureFloodCount对象标识了所有颗粒，GrainTracker便会执行以下两项操作：**
+1. 将当前时间步中的晶粒与上一个时间步中的晶粒进行匹配。
+2. 重新映射“接近”接触的晶粒。
+
+### Grain Tracking
+对于许多仿真类型，随着时间的推移跟踪特征的能力是很重要的。 在这里，我们提出一种算法，用于随时间推移跟踪非结构化网格上的任意特征。 跟踪阶段负责随时间推移对任意数量的移动和交互特征保持一致且唯一的标识。 跟踪阶段是算法中唯一需要时间步长之间有状态数据的阶段。 从实现的角度来看，这很重要，因为它可能会影响模拟检查点，终止并成功重启的能力。 重新启动功能对于处理硬件故障或在高性能计算环境中常见的几个执行窗口上分散长时间运行的仿真很有用。
+
+在特征跟踪阶段的第一次调用期间，没有先前的特征数据可与之进行比较，因此不执行跟踪。 相反，必须将一组ID分配给每个识别的特征。 如果需要，可以从外部提供这些ID。 实际上，如果从外部提供ID，则没有任何限制。 这些ID不必是连续的，也不必是唯一的。 但是，如果为单独特征分配了重复的ID，并且这些要素在模拟过程中接触，则数据将合并在一起，这可能会或可能不会导致正确的模拟。 如果不需要外部分配，功能跟踪算法将为每个单独的功能分配一组连续且唯一的ID。 首先，通过存储在每个要素数据结构中的最小元素ID对识别出的要素进行排序，然后根据排序后的位置分配一个数字，即可实现这一点。 此策略可确保对不同的网格划分不敏感的稳定排序。
+
+在随后的调用中，将上一时间步骤中的特征信息与当前时间步骤中的所有特征进行比较，并进行组织，以便正确确定所有特征的最佳匹配。 比较标准是同时全局最小化所有特征的质心距离。 通过对构成每个特征的元素质心进行平均来计算质心。 遍历新的特征列表时，我们选择上一个列表中按质心距离最近的特征。 在处理其余功能时，此配对将保存到“最佳匹配”数据结构中。
+
+在上一个时间步中，功能可能会争夺相同的“最佳匹配”功能。 这表明特征已在当前步骤中被吸收或以其他方式消失，并且其与上一步骤相对应的特征错误地将无关的特征识别为最佳匹配。 通过将质心距离不匹配较大的特征标记为不活动来处理这种情况。
+
+比较所有对后，将标记（“匹配”）最佳匹配数据结构中的所有要素，并将上一时间步长的ID保存到当前时间步长中的相应匹配中。 然后处理新列表和先前列表中不匹配的特征。 上一个列表中不匹配的特征标记为不活动。 当前列表中不匹配的功能是“新的”，这意味着它们以前没有被识别。 前一种情况是在当前列表中的特征完全为零时发生的，这意味着前一个列表中的任何特征都将保持不匹配状态。 当特征拆分或创建新要素时，可能会发生后一种情况。
+
+### Grain Remapping
+使用递归回溯算法可以实现晶粒的重新映射，该算法能够执行多个变量交换，以将颜色不正确的谷物图转换为合适的谷物图。 这种回溯算法仅在根进程上运行，而根进程是唯一包含完整全局晶粒图的处理器。 当一对晶粒位于图1和图2紧密接近时，可以任意选择其中一个，并将其指定为“目标”晶粒，这表明我们试图将其定义变量值重新映射到其他解决方案变量。 根据一个图具有的邻居数和代表每个邻居的变量，可能或不可能通过仅重新映射目标晶粒来创建有效图。 在这种情况下，将执行深度受限，深度优先的搜索，以查找一系列邻居交换，以使图保持有效状态。
+
+首先，构建并填充一个大小为m的列表数组，其中m是使用的变量（颜色）的数量。 对于每个变量，将定位由该变量表示的最接近的谷物（由边界框距离确定），并将其距离与谷物ID本身一起存储在列表中的相应数组位置处。 如果给定变量的最接近边界框与目标颗粒重叠，则我们将维持负计数，该计数代表重叠的总数以及每个重叠的颗粒的ID。 否则，我们将存储给定变量最接近边界框边缘到边界框边缘的距离。 我们不必费心为具有匹配的变量索引的谷物或存在于保留的订购参数上的谷物计算或存储任何信息，因为这些变量不符合重新映射的资格。 如果有任何空阶参数（表示零晶粒的阶参数），则将无穷远距离（\infty∞）输入到相应位置，优先处理这些变量以进行重新映射。 然后以相反的顺序对这个颜色距离''阵列进行排序，将谷物放在最靠近正面的位置，而将那些具有多个重叠的谷物放在背面附近。
+
+我们遍历距离数组，寻找适用于重新映射目标晶粒的可用变量。 如果遇到正值，则可以立即重新映射谷物，并且算法返回“成功”。 但是，如果遇到负值，我们必须首先对每个相应的颗粒光晕进行精细检查，以查看这些颗粒是否实际重叠。 如果没有，我们可以立即重新映射目标颗粒并返回“成功”。 如果遇到只有一个真正重叠的颗粒（边界框和光晕相交）的情况，该算法将用其他颗粒的变量临时标记目标颗粒，从而有效地模拟了重新映射操作。 然后，它在另一个相邻的谷物上重复进行，使其成为新的目标。 如果该算法能够在递归调用中找到成功的重新映射，则返回的“成功”值向调用方指示可以删除临时标记。 然后，“成功”值可以在调用堆栈上传播。 如果“颜色距离”数组中的所有项目都用尽，而未找到成功的交换或一组交换，则算法将返回“失败”。 如果我们正在进行递归调用，则将暂定标记删除，并检查数组中的下一个值。 我们发现将深度优先搜索限制在相对较小的深度（2或3）可以很好地工作，以更快地摆脱不可能的紧密着色的图形。 这还有助于避免无限回溯算法可能带来的巨大运行时间损失和指数增长率。 注意：暂时标记是通过打开要素数据结构中的DIRTY状态标志来表示的。  DIRTY状态使用一个独立的位，因此它可以与另一个状态同时存在。
+
+
+### code
+
+
+```c++
+void
+GrainTracker::updateFieldInfo()
+// 此方法用于填充用于存储字段数据（节点或元素）的任何数据结构。
+
+// 在finalize结束时调用它，并且可以利用在执行此后处理器期间创建的任何数据结构。
+{
+  TIME_SECTION(_update_field_info);
+  // typedef unsigned int PerfID
+  // const PerfID GrainTracker::_update_field_info
+
+  for (MooseIndex(_maps_size) map_num = 0; map_num < _maps_size; ++map_num)
+    _feature_maps[map_num].clear();
+  // _maps_size: Convenience variable holding the size of all the datastructures size by the number of maps.
+
+
+  std::map<dof_id_type, Real> tmp_map;
+
+  for (const auto & grain : _feature_sets)
+  // 基于范围的for循环(C++11)
+  // _feature_sets:The data structure used to hold the globally unique features.
+  {
+    std::size_t curr_var = grain._var_index;
+    std::size_t map_index = (_single_map_mode || _condense_map_info) ? 0 : curr_var;
+
+    for (auto entity : grain._local_ids)
+    {
+      // Highest variable value at this entity wins
+      Real entity_value = std::numeric_limits<Real>::lowest();
+      if (_is_elemental)
+      {
+        const Elem * elem = _mesh.elemPtr(entity);
+        std::vector<Point> centroid(1, elem->centroid());
+        if (_poly_ic_uo && _first_time)
+        {
+          entity_value = _poly_ic_uo->getVariableValue(grain._var_index, centroid[0]);
+        }
+        else
+        {
+          _fe_problem.reinitElemPhys(elem, centroid, 0, /* suppress_displaced_init = */ true);
+          entity_value = _vars[curr_var]->sln()[0];
+        }
+      }
+      else
+      {
+        auto node_ptr = _mesh.nodePtr(entity);
+        entity_value = _vars[curr_var]->getNodalValue(*node_ptr);
+      }
+
+      if (entity_value != std::numeric_limits<Real>::lowest() &&
+          (tmp_map.find(entity) == tmp_map.end() || entity_value > tmp_map[entity]))
+      {
+        mooseAssert(grain._id != invalid_id, "Missing Grain ID");
+        _feature_maps[map_index][entity] = grain._id;
+
+        if (_var_index_mode)
+          _var_index_maps[map_index][entity] = grain._var_index;
+
+        tmp_map[entity] = entity_value;
+      }
+
+      if (_compute_var_to_feature_map)
+      {
+        auto insert_pair = moose_try_emplace(
+            _entity_var_to_features, entity, std::vector<unsigned int>(_n_vars, invalid_id));
+        auto & vec_ref = insert_pair.first->second;
+
+        if (insert_pair.second)
+        {
+          // insert the reserve op numbers (if appropriate)
+          for (MooseIndex(_n_reserve_ops) reserve_index = 0; reserve_index < _n_reserve_ops;
+               ++reserve_index)
+            vec_ref[reserve_index] = _reserve_grain_first_index + reserve_index;
+        }
+        vec_ref[grain._var_index] = grain._id;
+      }
+    }
+
+    if (_compute_halo_maps)
+      for (auto entity : grain._halo_ids)
+        _halo_ids[grain._var_index][entity] = grain._var_index;
+
+    for (auto entity : grain._ghosted_ids)
+      _ghosted_entity_ids[entity] = 1;
+  }
+
+  communicateHaloMap();
+}
+
+```
+
 ### 4.1.2. ComputeElasticityTensorBase
 
 # 5. Tensor_mechanics
@@ -677,3 +850,13 @@ time_scale = 1e-01 # s
 
 要求：
 
+
+
+Thanks very much for your enthusiastic answer, @GiudGiud 
+I think what you said is correct. I performed the `restart` operation on `grain_growth_2D_graintracker.i`, and it proved that it was operational. However, the problematic `poly_grain_growth_2D_eldrforce.i` used a derived class of `GrainDataTracker.h`, namely `GrainTrackerElasticity`, and `GrainDataTracker.h` is a template class that inherits `GrainDataTracker`.
+
+Therefore, I also think that restart is interrupted somewhere in `GrainDataTracker.h`.
+I will do my best to solve this problem, and hope you can provide more opinions for moose beginners like me.
+
+Thanks,
+wei.
