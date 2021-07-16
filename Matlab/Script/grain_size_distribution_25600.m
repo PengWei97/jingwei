@@ -25,6 +25,10 @@ xy = zeros(NUM_INTERVAL,3*(NUM_FILE-1)); % 输出数据-晶粒尺寸分布
 
 idex_data = [5 19 34 41 198 234];
 
+% idex_data中5表示*.csv文件中文件中0024.csv时刻的总体情况，且第一行为0000
+% 对于0024 = 8*(4-1),即5= 4+1
+% 对于0312 = 8*(40-1),即41 = 40+1
+
 
 %% 计算
 for iFile = 2:NUM_FILE
@@ -67,6 +71,7 @@ for iFile = 2:NUM_FILE
         xyPoint(jPoint,1) = (XPIONT(1,jPoint-1) + XPIONT(1,jPoint))/2; % x轴
 %         xyPoint(jPoint,2) = 3.14*xyPoint(jPoint,1)^2.*numGrainYPiont(jPoint,1)/numGrainNow/(2/(NUM_INTERVAL-1)); % y轴
         xyPoint(jPoint,2) = numGrainYPiont(jPoint,1)/numGrainNow/(MAX_radiusRelativeGrain/(NUM_INTERVAL-1)); % y轴
+        % 相对频率 = 绝对频率/所区分区间的间距
     end
 %     xyPoint;
 
@@ -77,63 +82,98 @@ for iFile = 2:NUM_FILE
     iFile;
 end
 
-%% 可视化
 type_MarkerFaceColor = ['r';'g';'c';'b';'m'];
-idex_data_output = [21 23 25 89 103 110 105]
+type_Marker = ['o';'^';'s';'p';'d']
+idex_data_output = [21 23 26 28 103 110 105]
 hold on
 box on
+% for iFile = 2:NUM_FILE
+%     bar(xy(1:idex_data_output(1,(iFile-1)),3*(iFile-2)+1),xy(1:idex_data_output(1,(iFile-1)),3*(iFile-2)+2),1.5,...
+%         'EdgeColor',type_MarkerFaceColor(iFile-1,:),...
+%         'FaceColor',type_MarkerFaceColor(iFile-1,:));
+% end
 for iFile = 2:NUM_FILE
-    bar(xy(1:idex_data_output(1,(iFile-1)),3*(iFile-2)+1),xy(1:idex_data_output(1,(iFile-1)),3*(iFile-2)+2),1.5,...
-        'EdgeColor',type_MarkerFaceColor(iFile-1,:),...
-        'FaceColor',type_MarkerFaceColor(iFile-1,:));
+    max_xx = max(xy((1:idex_data_output(1,(iFile-1))),3*(iFile-2)+1));
+    x = xy(1:idex_data_output(1,(iFile-1)),3*(iFile-2)+1);
+    y = xy(1:idex_data_output(1,(iFile-1)),3*(iFile-2)+2);
+    xx = linspace(0,max_xx,100);
+    yy = spline(x,y,xx);
+    type_Marker_0 = strcat(type_MarkerFaceColor(iFile-1,:),type_Marker(iFile-1,:));
+    type_Marker_1 = type_MarkerFaceColor(iFile-1,:);
+    plot(xx,yy,...
+    'color',type_Marker_1,...
+    'LineWidth',1,...
+    'HandleVisibility','off');
+
+    plot(x,y,type_Marker_0,...
+    'MarkerFaceColor',type_Marker_1,...
+    'LineWidth',3,...
+    'MarkerSize',3,...
+    'HandleVisibility','on');
+%     plot(x,y,type_Marker_0,xx,yy,type_Marker_1,...
+%     'MarkerFaceColor',type_Marker_1,...
+%     'MarkerSize',2,...
+%     'LineWidth',1,...
+%     'HandleVisibility','on');
 end
 
-xx = linspace(0,2.45,100);
-yy = spline(xy(:,1),xy(:,2),xx);
-plot(xy(:,1),xy(:,2),'ro',xx,yy,'r',...
-    'MarkerFaceColor','r',...
+xx_Hillert = linspace(0,1.99,100);
+beta_dim = 2
+yy_Hillert = beta_dim.*xx_Hillert./(2-xx_Hillert).^(2+beta_dim).*(2*exp(1)).^beta_dim.*exp(-2*beta_dim./(2-xx_Hillert))
+
+plot(xx_Hillert,yy_Hillert,...
+     'color','m',...
+    'MarkerFaceColor','m',...
     'MarkerSize',2,...
     'LineWidth',1,...
-    'HandleVisibility','off');
+    'HandleVisibility','on');
 
-xx = linspace(0,2.45,100);
-yy = spline(xy(:,3*(iFile-2)+1),xy(:,3*(iFile-2)+2),xx);
-plot(xy(:,3*(iFile-2)+1),xy(:,3*(iFile-2)+2),'bo',xx,yy,'b',...
-    'MarkerFaceColor','b',...
-    'MarkerSize',2,...
-    'LineWidth',1,...
-    'HandleVisibility','off');
+% xx = linspace(0,2.1,100);
 
-num_FontSize_label = 8
+% yy = spline(xy(1:21,1),xy(1:21,2),xx);
+% plot(xy(:,1),xy(:,2),'ro',xx,yy,'r',...
+%     'MarkerFaceColor','r',...
+%     'MarkerSize',2,...
+%     'LineWidth',1,...
+%     'HandleVisibility','off');
+
+% xx = linspace(0,2.45,100);
+% yy = spline(xy(:,3*(iFile-2)+1),xy(:,3*(iFile-2)+2),xx);
+% plot(xy(:,3*(iFile-2)+1),xy(:,3*(iFile-2)+2),'bo',xx,yy,'b',...
+%     'MarkerFaceColor','b',...
+%     'MarkerSize',2,...
+%     'LineWidth',1,...
+%     'HandleVisibility','off');
+
+num_FontSize_label = 15
 num_FontSize_legend = 10
 
 xlabel('R/<R>',...
   'FontSize',num_FontSize_label,...
   'FontWeight','bold',...
   'Color','k')
+
 ylabel('Related Frequency',...
       'FontSize',num_FontSize_label,...
       'FontWeight','bold',...
       'Color','k')
-set(gca,'FontSize',num_FontSize_legend,'Fontwei','Bold','Linewidth',1)
+set(gca,'FontSize',num_FontSize_label,'Fontwei','Bold','Linewidth',1)
 
-lgd = legend({'(a) 100.0ns','(b) 1000ns','(c) 3000ns','(d) 5000ns'},...
+lgd = legend({'(a) 146.0ns, 25282 grains','(b) 1144 ns, 21193 grains','(c) 2214 ns, 18280 grains' ,'(d) 2800 ns 17109 grains','(e) Hillert Distribution'},...
             'FontSize',num_FontSize_legend,'TextColor','black','Location','northeast');
 
 % ylim([0 1.4])
-% xlim([0,2.5])
+xlim([0,2.5])
 
 hfig = figure(1);
-figWidth = 10;
-figHight = 6.5;
+figWidth = 20;
+figHight = 13;
 % 7.3,7 for fcc_word
 
 set(hfig,'PaperUnits','centimeters');
 set(hfig,'PaperPosition',[0 0 figWidth figHight])
 fileout = [mat2str(12)];
 print(hfig,[fileout,'bi_0_9'],'-r300','-dpng')
-
-
 
 
 

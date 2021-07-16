@@ -60,6 +60,13 @@ lsusb
 
 du
 
+```bash
+$ df -h
+# linux系统以磁盘分区为单位查看文件系统，可以加上参数查看磁盘剩余空间信息
+/dev/sda5       1.1T  383G  660G  37% /
+
+```
+
 `ncdu` 
 ```powershell
 ncdu
@@ -219,3 +226,36 @@ adduser # 比较好，具有交互的界面
 - 国行，高转速，非叠瓦，氦气盘
 ###　固态硬盘
 
+
+
+# 10楼机房第二台服务器软件安装记录
+
+1. 新建用户pw-moose：`sudo adduser pw-moose`
+2. 获取更新列表：`sudo apt update`
+3. 更新软件：`sudo apt upgrade`
+4. 修改root密码：`sudo passwd root`
+5. 对pw-moose赋予超级权限
+6. 配置github：[Github 简明教程](https://www.runoob.com/w3cnote/git-guide.html)
+7. 修改终端样式：
+```bash
+if [ "$color_prompt" = yes ]; then
+     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]$(git_branch)\n\[\033[01;36m\]\w\[\033[01;31m\]\n\$ '
+ else
+     PS1='${debian_chroot:+($debian_chroot)}\u@\h:(git_branch)\n\w\n\$ '
+ fi
+
+function git_branch {
+   branch="`git branch 2>/dev/null | grep "^\*" | sed -e "s/^\*\ //"`"
+   if [ "${branch}" != "" ];then
+       if [ "${branch}" = "(no branch)" ];then
+           branch="(`git rev-parse --short HEAD`...)"
+       fi
+       echo " ($branch)"
+   fi
+}
+```
+1. 安装moose，[教程](https://mooseframework.inl.gov/getting_started/installation/conda.html)
+2.  安装htup：`sudo snap install htop`
+3.  [Ubuntu 20安装Qv2ray 教程](https://iguge.app/helper/?p=257) https://ghelper.me/rss/b1d53e240a3c86d8795c85f05933991a
+4.  [Ubuntu20.04安装向日葵远程控制软件](https://zhuanlan.zhihu.com/p/144426017)
+5.  
