@@ -8,11 +8,11 @@
 5. 第五段:论文整体结构
 ## 借鉴文献
 
-1. [peiNormalAbnormalGrain2020](https://www.sciencedirect.com/science/article/pii/S1005030220300141)
-2. [kundinPhasefieldSimulationAbnormal2020](https://doi.org/10.1016/j.commatsci.2020.109926)
-3. [liuPhaseFieldModelling2019](https://doi.org/10.3390/ma12244048)
-4. [kundinPhasefieldSimulationAbnormal2020](https://www.sciencedirect.com/science/article/pii/S0927025620304171)
-5. 
+1. [peiNormalAbnormalGrain2020](https://www.sciencedirect.com/science/article/pii/S1005030220300141).
+2. [zollnerGrainGrowth2016](./https://www.sciencedirect.com/science/article/pii/B9780128035818031581)
+3. [kundinPhasefieldSimulationAbnormal2020](https://doi.org/10.1016/j.commatsci.2020.109926)
+4. [liuPhaseFieldModelling2019](https://doi.org/10.3390/ma12244048)
+5. [kundinPhasefieldSimulationAbnormal2020](https://www.sciencedirect.com/science/article/pii/S0927025620304171)
 
 <!-------------------------------------------------------------->
 
